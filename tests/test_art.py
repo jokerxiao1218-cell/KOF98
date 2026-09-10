@@ -93,6 +93,26 @@ def test_pose_frame_counts_match_registry():
             assert len(terry.POSES[key]) == n, f"姿势 {key} 帧数应为 {n}"
 
 
+def test_inbetween_frames_differ():
+    """batch F 中割质量下限:同姿势相邻两帧必须有真实演化(≥12 像素差),
+    掐死"复制上一帧凑数"。阈值标定自 A5 全表相邻最小合法差(fall 的
+    两帧差 26 像素,是全表最微妙的演化;低于 12 即视为没动过)。"""
+    tobytes = getattr(pygame.image, "tobytes", None) or pygame.image.tostring
+    for key, n in poses.POSE_KEYS.items():
+        if key in FX or n < 2:
+            continue
+        frames = [assets.sprite(key, f, 1, P1) for f in range(n)]
+        for i in range(n - 1):
+            a = tobytes(frames[i], "RGBA")
+            b = tobytes(frames[i + 1], "RGBA")
+            diff = sum(1 for j in range(0, len(a), 4)
+                       if (a[j + 3] > 128 or b[j + 3] > 128)
+                       and a[j:j + 4] != b[j:j + 4])
+            assert diff >= 12, (
+                f"{key} 第{i}→{i + 1}帧只差 {diff} 像素,疑似复制粘贴凑数帧"
+                "(中割帧必须让多个部件真的动起来)")
+
+
 def test_unknown_pose_raises():
     """未注册键必须 raise,不许静默画空(设计文档 §5.3)。"""
     try:

@@ -53,8 +53,8 @@ POSE_TABLE["power_dunk"] = (    # 5 帧:蹲蓄→升→空中举拳→下砸→�
 
 POSE_TABLE["power_geyser"] = (  # 5 帧:蹲蓄→跪砸地→爆发挺举→保持→收
     _crouch("wind", 31, 56, arm_b="wind", ab_dx=17, ab_dy=58),
-    _f(("arm_slam", 22, 62), ("leg_kneel", 16, 68),
-        ("torso", 20, 48), ("head", 21, 32)),
+    _f(("leg_kneel", 16, 68), ("torso", 20, 48), ("head", 21, 32),
+        ("arm_slam", 22, 62)),
     _f(("arm_raise", 15, 0), ("leg_stand", 18, 54),
         ("torso", 20, 23), ("head", 19, 7), ("arm_raise", 31, 2)),
     _f(("arm_raise", 14, 1), ("leg_stand", 18, 54),

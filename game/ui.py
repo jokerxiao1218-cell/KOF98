@@ -70,7 +70,10 @@ GAUGE_MAX = (255, 90, 90)
 # 姿势动画速率:每几帧进一格(非攻击态;攻击态用招内帧号对相位)
 ANIM_RATE = {
     "idle": 10, "walk": 7, "run": 5, "jump": 6, "jump_fall": 6,
-    "fall": 6, "dash_back": 6, "knockdown": 10,
+    "fall": 6, "dash_back": 6,
+    # 反应姿势速率对齐硬直时长(hitstun 14~20 / 躺地 12 / 起身 24),
+    # 配合姿势帧龄锚定:整段演出在硬直内从第 0 帧按序播完(§11.3)
+    "knockdown": 6, "hit_high": 5, "hit_low": 8, "wakeup": 10,
 }
 
 # HUD 几何
@@ -138,7 +141,10 @@ def attack_anim_frame(move, af, n):
 
 
 def _pose_surface(app, fs, af):
-    """快照 → 姿势 Surface:攻击态按打击帧对齐取相位,其余按全局帧数走。"""
+    """快照 → 姿势 Surface:攻击态按打击帧对齐取相位;其余优先用
+    姿势帧龄(FightScene/RoundIntro 锚定,受击/起身/开场演出从第 0 帧
+    按序播,不受全局节拍随机相位影响),无锚定(demo 静态绘制)退回
+    全局帧数。"""
     n = poses.POSE_KEYS[fs.pose]  # 未注册姿势 KeyError:要炸就炸,不许静默
     if af is not None and fs.move_id:
         mv = app.moves.get(fs.move_id)
@@ -146,8 +152,25 @@ def _pose_surface(app, fs, af):
     elif af is not None:
         f = af % n
     else:
-        f = app.ticks // ANIM_RATE.get(fs.pose, 9) % n
+        base = app.ticks
+        ages = getattr(app, "pose_ages", None)
+        if ages and fs.side in ages:
+            base = ages[fs.side]
+        f = base // ANIM_RATE.get(fs.pose, 9) % n
     return assets.sprite(fs.pose, f, fs.facing, assets.load_palette(fs.side))
+
+
+def _advance_pose_ages(app, snap, last_pose):
+    """姿势帧龄锚定(素材 v2 §11.3):换姿势归零、否则 +1——多帧反应/
+    演出按状态入口顺序从第 0 帧播。只在场景推进帧调用:暂停期不涨,
+    KO 慢动作期随慢速推进走。"""
+    ages = app.pose_ages
+    for fs in snap.fighters:
+        if last_pose.get(fs.side) != fs.pose:
+            last_pose[fs.side] = fs.pose
+            ages[fs.side] = 0
+        else:
+            ages[fs.side] = ages.get(fs.side, -1) + 1
 
 
 def _draw_world(surf, app, snap):
@@ -325,9 +348,13 @@ class RoundIntroScene(Scene):
         super().__init__(app)
         self.match = match
         self.t = self.INTRO_FRAMES
+        # 姿势帧龄锚定:intro 三帧演出从第 0 帧按序播(素材 v2 §11.3)
+        app.pose_ages = {}
+        self._last_pose = {}
 
     def step(self, events):
         self.t -= 1
+        _advance_pose_ages(self.app, self.match.snapshot(), self._last_pose)
         if self.t <= 0:
             self._go(FightScene(self.app, self.match))
 
@@ -355,6 +382,9 @@ class FightScene(Scene):
         self._sparks: list = []  # [x, y, 剩余帧, fx键]
         self._last_hp = [match.f1.health, match.f2.health]
         self._last_state = [match.f1.state, match.f2.state]
+        # 姿势帧龄锚定:接管 App.pose_ages(上一场/开场场景的表作废)
+        app.pose_ages = {}
+        self._last_pose = {}
 
     def step(self, events):
         app = self.app
@@ -365,6 +395,7 @@ class FightScene(Scene):
             p2 = (self.ai.next_tick(m.ai_view(T.Side.P2))
                   if app.vs_ai else T.EMPTY_TICK)
             self.snap = m.step(p1, p2)
+            _advance_pose_ages(app, self.snap, self._last_pose)
             self._update_sparks()
         elif m.phase == "round_end":
             # KO 慢动作:前 20 个对局帧 3 帧 1 步,其后正常速
@@ -372,6 +403,7 @@ class FightScene(Scene):
             self._slowmo += 1
             if not early or self._slowmo % 3 == 0:
                 self.snap = m.step(T.EMPTY_TICK, T.EMPTY_TICK)
+                _advance_pose_ages(app, self.snap, self._last_pose)
         elif m.phase == "between_rounds":
             m.next_round()
             self._go(RoundIntroScene(app, m))
@@ -470,6 +502,7 @@ class App:
         self.clock = pygame.time.Clock()
         self.running = True
         self.ticks = 0
+        self.pose_ages = None  # 姿势帧龄锚定表;None=未锚定(按全局 ticks)
         self.vs_ai = vs_ai
         self.paused = False
         self.debug = False
