@@ -218,7 +218,7 @@ class HitResult:
     victim: Side
     kind: str  # hit / block / trade
     move: str  # move_id
-    damage: int  # 已按连段缩放
+    damage: int  # 已按连段缩放;防御时此处承载削血值(=move.chip),见设计文档执行记录
     hitstop: int
     stun: int  # 命中→受击硬直;防御→防御硬直
     pushback: float
