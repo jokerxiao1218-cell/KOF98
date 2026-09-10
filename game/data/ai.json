@@ -1,0 +1,15 @@
+{
+  "seed": 42,
+  "reaction_interval": 6,
+  "bands": {"far": 160, "close": 90},
+  "weights": {
+    "far":   {"approach": 0.45, "jump_in": 0.15, "power_wave": 0.20, "wait": 0.20},
+    "mid":   {"walk": 0.35, "run": 0.15, "jump_in": 0.15, "crack_shoot": 0.05,
+              "power_wave": 0.10, "block": 0.10, "backdash": 0.10},
+    "close": {"st_B": 0.25, "cr_B": 0.15, "burn_knuckle": 0.15, "throw": 0.10,
+              "block": 0.20, "backdash": 0.10, "jump": 0.05}
+  },
+  "reactions": {"block_prob": 0.55, "antiair_prob": 0.75, "antiair_dist": 120,
+                "super_prob": 0.10, "projectile_jump_prob": 0.60},
+  "conservative": {"own_health_below": 300, "block_bonus": 0.15}
+}
