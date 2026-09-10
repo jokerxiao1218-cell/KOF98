@@ -102,6 +102,7 @@ class Fighter:
         self._opp_view: T.FighterView | None = None  # 最近一次对手视图(结算/观察用)
         self._lifted: bool = False  # until="land" 招是否已到起跳帧
         self._fresh_attack: bool = False  # 本 step 刚出招(出招帧不推帧号)
+        self._throw_move: T.MoveDef | None = None  # THROW_GRAB 期间的投招(match 结算用)
         self.combo: int = 0  # 自己作为攻方的连段数(对手脱离受击态时清零)
 
     # ---------- 方向换算(前/后 = 按 facing 的绝对 Dir) ----------
@@ -200,6 +201,10 @@ class Fighter:
     def attack_frame(self) -> int | None:
         """attack 态的招内帧号(match 层发射弹体/演出对帧时需要,只读)。"""
         return self._attack_frame if self.state == ATTACK else None
+
+    def current_throw(self) -> T.MoveDef | None:
+        """THROW_GRAB 态的投招(match 结算受方用,只读;batch B 契约补充)。"""
+        return self._throw_move if self.state == THROW_GRAB else None
 
     def snapshot(self) -> T.FighterSnapshot:
         """渲染快照。attack 态 pose=move.pose_key;air 态按升/降分 jump/jump_fall。"""
@@ -482,8 +487,10 @@ class Fighter:
             if want not in tick.dirs:
                 continue
             if abs(self.x - opp_view.x) <= mv.throw_range and _view_throwable(opp_view):
+                self._throw_move = mv  # 供 match 结算受方(batch B 契约补充)
                 self._enter(THROW_GRAB, mv.total)  # 3/2/20 = total 25 帧
             else:
+                self._throw_move = None
                 self._enter(THROW_WHIFF, THROW_WHIFF_FRAMES)
             return True  # 按钮被投流程消费:条件不满足也是 whiff,不出重拳
         return False
