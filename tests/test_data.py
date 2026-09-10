@@ -82,8 +82,10 @@ def test_power_wave_projectile(moves):
     a = moves["power_wave_A"]
     assert a.windows == ()
     assert a.projectile["speed"] == 3.5 and a.projectile["max_count"] == 1
+    assert a.projectile["start"] == 14  # 发波帧=附录A帧数表的 startup(14/—/26)
     assert a.total == 40 and a.damage == 60 and a.chip == 8
     assert moves["power_wave_C"].projectile["speed"] == 4.5
+    assert moves["power_wave_C"].projectile["start"] == 18
     assert moves["power_wave_C"].total == 48
 
 

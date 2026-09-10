@@ -560,7 +560,7 @@ def _build_move(m: dict, ctx: str) -> T.MoveDef:
     if proj_raw is not None:
         if not isinstance(proj_raw, dict):
             raise DataError(f"{ctx}.projectile 应为对象")
-        extra = set(proj_raw) - {"speed", "box", "max_count"}
+        extra = set(proj_raw) - {"speed", "box", "max_count", "start"}
         if extra:
             raise DataError(f"{ctx}.projectile 含未知键 {sorted(extra)}")
         speed = _num(_need(proj_raw, "speed", f"{ctx}.projectile"), f"{ctx}.projectile.speed")
@@ -569,10 +569,14 @@ def _build_move(m: dict, ctx: str) -> T.MoveDef:
         max_count = _int(_need(proj_raw, "max_count", f"{ctx}.projectile"), f"{ctx}.projectile.max_count")
         if max_count < 1:
             raise DataError(f"{ctx}.projectile.max_count 应 >=1")
+        start = _int(_need(proj_raw, "start", f"{ctx}.projectile"), f"{ctx}.projectile.start")
+        if not 0 < start < total:
+            raise DataError(f"{ctx}.projectile.start(发波帧)应在 0~total({total}) 内,得到 {start}")
         proj = {
             "speed": speed,
             "box": _box(_need(proj_raw, "box", f"{ctx}.projectile"), f"{ctx}.projectile.box"),
             "max_count": max_count,
+            "start": start,
         }
 
     motion_raw = m.get("motion")

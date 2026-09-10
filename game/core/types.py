@@ -136,8 +136,8 @@ class MoveDef:
     chip: int  # 防御削血(被防时扣)
     hitstun: int  # 命中硬直帧
     blockstun: int  # 防御硬直帧
-    pushback_hit: float  # 命中推背 px/帧
-    pushback_block: float
+    pushback_hit: float  # 命中推背 px(一次性位移)
+    pushback_block: float  # 防御推背 px(一次性位移)
     guard: str  # mid / low / high / unblockable
     knockdown: str  # none / air_juggle / sweep / hard
     cancels: tuple  # tuple[str, ...] ⊆ ("special", "super")
@@ -221,7 +221,7 @@ class HitResult:
     damage: int  # 已按连段缩放;防御时此处承载削血值(=move.chip),见设计文档执行记录
     hitstop: int
     stun: int  # 命中→受击硬直;防御→防御硬直
-    pushback: float
+    pushback: float  # 推背 px(一次性;投技为带符号世界位移)
     knockdown: str
     gauge_attacker: int
     gauge_victim: int
