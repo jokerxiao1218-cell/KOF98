@@ -130,7 +130,10 @@ POSE_TABLE["thrown"] = (
 )
 
 POSE_TABLE["win"] = (
-    _f(("arm_stance_b", 17, 24), ("leg_stand", 18, 54),
+    # leg_stand 上移 2px(54→52)封腰缝:躯干(20,23)腰带底行 y51 与腿顶
+    # 行 y52 直接相接,原来 y52-53 两行全空(2px 透明缝)已消;代价是
+    # 脚底从 y97 浮到 y95(脚底允许微浮,腰缝优先)。举臂庆祝,头微后仰。
+    _f(("arm_stance_b", 17, 24), ("leg_stand", 18, 52),
         ("torso", 20, 23), ("head", 19, 7), ("arm_raise", 31, 2)),
 )
 

@@ -373,7 +373,7 @@ POSE_TABLE["jump_fall"] = (     # 3 帧:下落展腿 → 下沉前倾 → 触地
 )
 
 POSE_TABLE["land"] = (
-    _f(("arm_kick_bal", 29, 28), ("leg_crouch", 16, 76),
+    _f(("arm_kick_bal", 29, 28), ("leg_crouch", 16, 78),
         ("torso", 20, 56), ("head", 19, 44)),
 )
 

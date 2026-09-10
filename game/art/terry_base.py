@@ -787,8 +787,8 @@ PARTS["leg_knee"] = [      # 提膝:前膝抬起,支撑腿全长
     "....Ppp...rrrr......",
     "....Ppp...rrwr......",
     "....Ppp...rrrr......",
-    "....Ppp...rrrr......",
-    "....Ppp....ww.......",
+    "....Ppp...WWWW......",
+    "....Ppp...WWWW......",
     "....Ppp.............",
     "....Ppp.............",
     "....Ppp.............",
@@ -1027,9 +1027,10 @@ def _stand(arm_f, af_dx, af_dy, arm_b="stance_b", ab_dx=17, ab_dy=24,
 
 
 def _crouch(arm_f, af_dx, af_dy, arm_b="stance_b", ab_dx=17, ab_dy=52,
-            legs="crouch", lg_dx=16, lg_dy=76,
+            legs="crouch", lg_dx=16, lg_dy=78,
             head_dx=0, head_dy=0, torso_dx=0, torso_dy=0):
-    """蹲姿骨架:腿 24 高贴地,躯干压到 56 起,头 44 起(总高约 56)。"""
+    """蹲姿骨架:腿 22 高,鞋底贴画布底(y=99,同扫腿帧贴地深度);
+    躯干压到 56 起,头 44 起(总高约 56)。"""
     return _f(
         ("arm_" + arm_b, ab_dx, ab_dy),
         ("leg_" + legs, lg_dx, lg_dy),
