@@ -12,6 +12,8 @@
   * 速度:vx 右正左负;vy 上正下负(所以重力是负数,loader 强制校验 gravity<0)。
     system.json 里 walk.back / jump.back_vx / dash_back.vx 存"正数大小",
     语义是"向后退/向身后跳",方向由使用方乘朝向。
+  * 世界坐标同样 y 向上为正:地面 y=0,跳起后 y>0;只有渲染层(ui)把它翻成
+    屏幕坐标(screen_y = ground_y − world_y),stage.ground_y 只用于渲染换算。
   * 指令记法:数字键盘方位(2=↓ 3=↘ 6=→ 4=← 1=↙ 8=↑),相对角色朝向,
     面朝左时由 motion.py 换算(镜像问题在输入层一次解决)。
 
@@ -181,7 +183,7 @@ class FighterView:
 
     side: Side
     x: float  # 脚底中心世界 x
-    y: float  # 脚底世界 y(在地面时 = system.stage.ground_y)
+    y: float  # 脚底世界 y(地面=0;全项目 y 向上为正,ground_y 只用于渲染换算)
     facing: int  # +1 面右 / -1 面左
     state: str  # 状态名(fighter 状态表)
     move_id: Optional[str]  # 攻击状态时的招式名
