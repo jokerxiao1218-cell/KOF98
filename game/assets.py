@@ -16,7 +16,7 @@ from pathlib import Path
 import pygame
 import pygame.freetype as _ft
 
-from game import poses
+from game import poses, sprites
 from game.art import fx, terry
 
 # 调色板:P1 经典红马甲版 / P2 蓝马甲换色版(KOF 惯例的 2P 换色)
@@ -57,14 +57,31 @@ _base_cache = {}        # (键, 帧, 调色板标识) -> 朝右基准版
 _sprite_cache = {}      # (键, 帧, 朝向, 调色板标识) -> 对外返回版
 
 
+def _side_of(palette):
+    """从调色板颜色识别 P1/P2(真图路径选换色 LUT 用;识别不了按 P1)。"""
+    if palette.get("vest") == PALETTES["P2"]["vest"]:
+        return "P2"
+    return "P1"
+
+
 def sprite(pose_key, frame, facing, palette):
-    """POSE 键 + 帧号 + 朝向 + 调色板 → 整帧 Surface(缓存共享)。"""
+    """POSE 键 + 帧号 + 朝向 + 调色板 → 整帧 Surface(缓存共享)。
+
+    素材系统 v2(§11.2A):人形姿势先查真贴图注册表(game/sprites/,
+    用户自备、gitignore),命中走切格路径;未命中回退程序纸娃娃。
+    特效键(proj_wave/fx_*)永远程序绘制。
+    """
     if pose_key not in poses.POSE_KEYS:
         raise KeyError(f"未注册的姿势 {pose_key!r}(可用键见 game/poses.py)")
     if isinstance(frame, bool) or not isinstance(frame, int):
         raise TypeError(f"帧号应为整数,得到 {frame!r}")
     if facing not in (1, -1):
         raise ValueError(f"facing 应为 +1(朝右)/ -1(朝左),得到 {facing!r}")
+    if pose_key not in _FX_KEYS:  # 特效永远程序绘制(真图只管人形姿势)
+        reg = sprites.default_registry()
+        if reg.has(pose_key):
+            return reg.surface(pose_key, frame % reg.frame_count(pose_key),
+                               facing, _side_of(palette))
     pal = terry.normalize_palette(palette)      # 缺色/坏色在这里就炸(特效也校验,
     pid = terry.palette_id(pal)                 # 四参数契约不许静默吞参数错)
     f = frame % poses.POSE_KEYS[pose_key]

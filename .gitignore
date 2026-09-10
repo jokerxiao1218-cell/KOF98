@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 .pytest_cache/
 scripts/out/
+game/sprites/          # 版权贴图永不入库(素材 v2 §11.1)

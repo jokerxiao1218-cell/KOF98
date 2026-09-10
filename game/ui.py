@@ -102,10 +102,48 @@ def _create_screen():
     return pygame.display.set_mode((WIN_W, WIN_H))
 
 
+def attack_anim_frame(move, af, n):
+    """出招取帧(§11.2B 打击帧=判定帧;纯函数,零 pygame)。
+
+    姿势 n 帧布局:[起手…(n-1-k 帧), 挥出×k(每判定窗一帧), 收招(末帧)];
+    k = 判定窗数(发波招无窗 → projectile.start 当打击时刻)。
+    af 落在窗辖区(窗 start 到下一窗 start 前)→ 显示该窗的挥出帧,
+    判定生效的那一拍正是最"狠"的姿势;过末窗 → 收招;n≤1 退化为 0。
+    """
+    if n <= 1:
+        return 0
+    if move.windows:
+        marks = [(w.start, w.end if w.end >= 0 else w.start + 2)
+                 for w in move.windows]
+        k = len(marks)
+    elif move.projectile:
+        sp = move.projectile.get("start", 0)
+        marks = [(sp, sp + 2)]
+        k = 1
+    else:
+        marks = [(0, 0)]
+        k = 1
+    k = min(k, n - 1)
+    windup_n = n - 1 - k
+    first_start = marks[0][0]
+    if af < first_start:  # 起手:均匀铺满 startup,逐帧逼近挥出
+        if windup_n <= 0:
+            return n - 1 - k
+        return min(af * windup_n // max(first_start, 1), windup_n - 1)
+    for i in range(k):  # 窗辖区:本窗起 → 下一窗起(末窗到收招)
+        next_start = marks[i + 1][0] if i + 1 < k else marks[i][1] + 1
+        if af < next_start:
+            return n - 1 - k + i
+    return n - 1  # 收招
+
+
 def _pose_surface(app, fs, af):
-    """快照 → 姿势 Surface:攻击态按招内帧对相位,其余按全局帧数走。"""
+    """快照 → 姿势 Surface:攻击态按打击帧对齐取相位,其余按全局帧数走。"""
     n = poses.POSE_KEYS[fs.pose]  # 未注册姿势 KeyError:要炸就炸,不许静默
-    if af is not None:
+    if af is not None and fs.move_id:
+        mv = app.moves.get(fs.move_id)
+        f = attack_anim_frame(mv, af, n) if mv is not None else af % n
+    elif af is not None:
         f = af % n
     else:
         f = app.ticks // ANIM_RATE.get(fs.pose, 9) % n

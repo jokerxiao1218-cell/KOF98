@@ -100,7 +100,7 @@ def _save_shots(shots, match) -> None:
     """关键帧渲染成 PNG(320×224 ×3,与游戏窗口同路径的绘制代码)。"""
     pygame.init()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    shim = _DrawShim(match.cfg, 0)
+    shim = _DrawShim(match.cfg, match.moves, 0)
     for tag, frame, snap in shots:
         shim.ticks = frame
         buf = pygame.Surface((ui.W, ui.H))
@@ -118,10 +118,12 @@ def _save_shots(shots, match) -> None:
 
 
 class _DrawShim:
-    """给 ui._draw_world 喂它要的两个字段(system/ticks),不拉整个 App。"""
+    """给 ui._draw_world/_pose_surface 喂它们要的字段(system/moves/ticks),
+    不拉整个 App。"""
 
-    def __init__(self, system, ticks):
+    def __init__(self, system, moves, ticks):
         self.system = system
+        self.moves = moves
         self.ticks = ticks
 
 
