@@ -3,4 +3,6 @@ __pycache__/
 *.pyc
 .pytest_cache/
 scripts/out/
-game/sprites/          # 版权贴图永不入库(素材 v2 §11.1)
+# 版权贴图永不入库(素材 v2 §11.1;注意:gitignore 行内"#"不是注释,
+# 写在规则同一行会让整条规则失效——2026-09-10 batch G 踩过,规则必须独占一行)
+game/sprites/
