@@ -403,6 +403,10 @@ class Match:
     def _f(self, side: T.Side) -> Fighter:
         return self.f1 if side is T.Side.P1 else self.f2
 
+    def snapshot(self) -> MatchSnapshot:
+        """当前帧只读快照(不推进;ui 场景初始化等"先画后步"场合用)。"""
+        return self._snapshot()
+
     def _other(self, side: T.Side) -> Fighter:
         return self.f2 if side is T.Side.P1 else self.f1
 
